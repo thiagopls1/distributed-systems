@@ -3,11 +3,25 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+u_int THREAD_COUNT = 1;
+size_t ARRAY_SIZE = 10;
+
+typedef struct {
+  int *array;
+  size_t *result;
+  size_t start_index;
+  size_t end_index;
+} workerParams;
+
 void *worker(void *arg) {
-  size_t value = (size_t)arg;
-  printf("Created a new thread (%d)\n", value);
-  sleep(value);
-  printf("Done (%d).\n", value);
+  workerParams *params = (workerParams *)arg;
+  size_t sum = 0;
+
+  for (int i = params->start_index; i < params->end_index; i++) {
+    sum += params->array[i];
+  }
+
+  *params->result += sum;
   return NULL;
 }
 
@@ -15,7 +29,7 @@ int *gen_huge_array(size_t size) {
   int *ptr = malloc(size * sizeof(int));
 
   for (size_t i = 0; i < size; i++) {
-    ptr[i] = (rand() % 10);
+    ptr[i] = (rand() % 100);
   }
 
   srand(time(NULL));
@@ -23,22 +37,32 @@ int *gen_huge_array(size_t size) {
 }
 
 int main() {
-  // pthread_t thread1;
-  // pthread_t thread2;
+  pthread_t threads[THREAD_COUNT];
 
-  size_t size = 1000000000;
-  int *gen_array = gen_huge_array(size);
+  size_t sum_seq = 0;
+  size_t sum_threads = 0;
 
-  printf("Array elements:\n");
-  for (size_t i = 0; i < size; i++) {
-    printf("%d", gen_array[i]);
+  printf("Gerando array de %zu elementos...\n", ARRAY_SIZE);
+  int *gen_array = gen_huge_array(ARRAY_SIZE);
+  printf("Feito!\n");
+
+  printf("Criando threads...\n");
+  for (int i = 0; i < THREAD_COUNT; i++) {
+    workerParams params;
+    params.array = gen_array;
+    params.result = &sum_threads;
+    params.start_index = 0;
+    params.end_index = 10;
+
+    pthread_create(&threads[i], NULL, worker, &params);
+  }
+  printf("Feito!\n");
+
+  for (int i = 0; i < THREAD_COUNT; i++) {
+    pthread_join(threads[i], NULL);
   }
 
-  // pthread_create(&thread2, NULL, worker, &data2);
-  // pthread_create(&thread1, NULL, worker, &data1);
-
-  // pthread_join(thread1, NULL);
-  // pthread_join(thread2, NULL);
+  printf("Soma total (threads): %zu", sum_threads);
 
   return 0;
 }

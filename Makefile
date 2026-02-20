@@ -5,9 +5,9 @@ $(TARGET_DIR)/%: %/main.c
 	mkdir -p $(TARGET_DIR)
 	gcc $< -o $@
 
-ado1: build/ado1
+ex1: build/ex1
 
-all: $(PROJECTS)
+build: $(PROJECTS)
 
 clean:
 	rm -rf $(TARGET_DIR)
