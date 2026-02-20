@@ -6,25 +6,33 @@
 
 const u_int THREAD_COUNT = 4;
 const size_t ARRAY_SIZE = 1000000000;
+const size_t CHUNK_SIZE = ARRAY_SIZE / THREAD_COUNT;
+const size_t CHUNK_MOD = ARRAY_SIZE % THREAD_COUNT;
 const int MAX_RAND = 100;
 
 typedef struct {
   int *array;
-  int thread_id;
   size_t *result;
-  size_t start_index;
-  size_t end_index;
+  int thread_id;
+  size_t *chunk_size;
+  size_t *chunk_mod;
 } workerParams;
 
 void *worker(void *arg) {
   workerParams *params = (workerParams *)arg;
   size_t sum = 0;
+  size_t start_index = params->thread_id * (*params->chunk_size);
+  size_t end_index = start_index + *params->chunk_size;
+
+  if (params->thread_id == THREAD_COUNT - 1) {
+    end_index = start_index + *params->chunk_size + *params->chunk_mod;
+  }
 
   printf("Thread %d:\n", params->thread_id);
-  printf("\tstart_index: %zu\n", params->start_index);
-  printf("\tend_index: %zu\n", params->end_index);
+  printf("\tstart_index: %zu\n", start_index);
+  printf("\tend_index: %zu\n", end_index);
 
-  for (size_t i = params->start_index; i < params->end_index; i++) {
+  for (size_t i = start_index; i < end_index; i++) {
     sum += params->array[i];
   }
 
@@ -70,14 +78,8 @@ int main() {
     params[i].array = gen_array;
     params[i].result = &sum_threads;
     params[i].thread_id = i;
-
-    // Indexes handling
-    params[i].start_index = i * chunk_size;
-    params[i].end_index = params[i].start_index + chunk_size;
-
-    if (i == THREAD_COUNT - 1) {
-      params[i].end_index = params[i].start_index + chunk_size + chunk_mod;
-    }
+    params[i].chunk_size = &chunk_size;
+    params[i].chunk_mod = &chunk_mod;
 
     pthread_create(&threads[i], NULL, worker, &params[i]);
   }
