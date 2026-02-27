@@ -6,6 +6,7 @@ $(TARGET_DIR)/%: %/main.c
 	gcc $< -o $@
 
 ex1: build/ex1
+ex2: build/ex2
 
 build: $(PROJECTS)
 
