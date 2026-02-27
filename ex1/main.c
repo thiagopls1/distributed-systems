@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 const unsigned int THREAD_COUNT = 4;
-const unsigned size_t ARRAY_SIZE = 1000000000;
+const size_t ARRAY_SIZE = 1000000000;
 const size_t CHUNK_SIZE = ARRAY_SIZE / THREAD_COUNT;
 const size_t CHUNK_MOD = ARRAY_SIZE % THREAD_COUNT;
 const int MAX_RAND = 100;
