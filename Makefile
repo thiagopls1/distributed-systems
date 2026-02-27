@@ -1,16 +1,17 @@
-TARGET_DIR = ./build
-PROJECTS = ex1
+TARGET_DIR = build
 
+# Caminhos completos dos projetos
+PROJECTS = ex1 ex2 lista1/ex1
+
+# Regra genérica
 $(TARGET_DIR)/%: %/main.c
-	mkdir -p $(TARGET_DIR)
+	mkdir -p $(dir $@)
 	gcc $< -o $@
 
-ex1: build/ex1
-ex2: build/ex2
-
-build: $(PROJECTS)
+# Alvo principal
+all: $(addprefix $(TARGET_DIR)/,$(PROJECTS))
 
 clean:
 	rm -rf $(TARGET_DIR)
 
-.PHONY: all clean $(PROJECTS)
+.PHONY: all clean
