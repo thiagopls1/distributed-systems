@@ -30,13 +30,16 @@ void *producerWorker(void *arg) {
 
     pthread_mutex_lock(params->mutex);
 
-    while (q_buffer->count == BUFFER_SIZE)
+    if (q_buffer->count == BUFFER_SIZE) {
+      printf("[producer] Queue full. Waiting to be emptied...\n");
       // Se o buffer estiver cheio, espera o sinal do consumer, até que ele não
       // esteja antes de produzir
       pthread_cond_wait(params->not_full, params->mutex);
+      printf("[producer] Queue emptied. Continuing...\n");
+    }
 
     q_buffer->queue[q_buffer->in] = item;
-    printf("Produced: %d at %d\n", item, q_buffer->in);
+    printf("[producer] Produced: %d at %d\n", item, q_buffer->in);
     q_buffer->in = (q_buffer->in + 1) % BUFFER_SIZE;
     q_buffer->count++;
 
@@ -57,13 +60,16 @@ void *consumerWorker(void *arg) {
     // Trava o mutex, e depois de consumir tudo da fila, destrava
     pthread_mutex_lock(params->mutex);
 
-    while (q_buffer->count == 0)
+    if (q_buffer->count == 0) {
       // Se o buffer estiver vazio, espera o sinal do producer, até que ele não
       // esteja antes de consumir
+      printf("[consumer] Queue empty. Waiting for more messages...\n");
       pthread_cond_wait(params->not_empty, params->mutex);
+      printf("[consumer] Found messages at queue. Consuming back...\n");
+    }
 
     int item = q_buffer->queue[q_buffer->out];
-    printf("Consumed: %d at %d\n", item, q_buffer->out);
+    printf("[consumer] Consumed: %d at %d\n", item, q_buffer->out);
     q_buffer->out = (q_buffer->out + 1) % BUFFER_SIZE;
     q_buffer->count--;
 
